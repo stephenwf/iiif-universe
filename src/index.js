@@ -3,6 +3,6 @@ import './index.css'
 import React from 'react'
 import {render} from 'react-dom'
 
-import App from './App'
+import Universe from './components/Universe/Universe';
 
-render(<App/>, document.querySelector('#app'))
+render(<Universe/>, document.querySelector('#app'))
