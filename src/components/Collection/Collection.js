@@ -2,14 +2,16 @@ import React, { Component } from 'react';
 import oboe from 'oboe';
 import VirtualList from 'react-virtual-list';
 import * as fiveo from 'fiveo-web';
+import { Manifest, CanvasProvider, CanvasNavigation, LocaleString } from '@canvas-panel/core';
 
 const MyList = ({
                   virtual,
                   itemHeight,
+  onClick
                 }) => (
   <ul style={virtual.style}>
     {virtual.items.map(item => (
-      <li key={`item_${item[ '@id' ]}`} style={{ height: itemHeight }}>
+      <li key={`item_${item[ '@id' ]}`} onClick={onClick(item)} style={{ height: itemHeight }}>
         {item.label}
       </li>
     ))}
@@ -29,6 +31,7 @@ class Collection extends Component {
     loading: false,
     isFocused: false,
     fiveoLoaded: false,
+    selectedManifest: null,
   };
 
   index = null;
@@ -107,6 +110,12 @@ class Collection extends Component {
       });
   }
 
+  handleClick = (item) => () => {
+    if (item['@type'] === 'sc:Manifest') {
+      this.setState({ selectedManifest: item['@id'] })
+    }
+  }
+
   performSearch = (text) => {
     if (!text) {
       return this.setState({ results: [] });
@@ -117,7 +126,7 @@ class Collection extends Component {
   };
 
   render() {
-    const { collections, manifests, results, isFocused, fiveoLoaded, isLoading } = this.state;
+    const { collections, manifests, results, isFocused, selectedManifest, fiveoLoaded, isLoading } = this.state;
     return (
       <div>
         {this.props.label}
@@ -125,9 +134,50 @@ class Collection extends Component {
         <MyVirtualList
           items={collections}
           itemHeight={40}
+          onClick={this.handleClick}
         />
 
         <h3>Manifests</h3>
+        { selectedManifest ? (
+          <Manifest url={selectedManifest}>
+              <CanvasProvider startCanvas={3}>
+                {
+                  ({ sequence, manifest, canvas, currentCanvas, startCanvas, dispatch }) => (
+                    <div>
+                      <ul>
+                        <li>
+                          <CanvasNavigation dispatch={dispatch} />
+                        </li>
+                        <li>
+                          <strong>Total Sequences: </strong>
+                          {manifest.getTotalSequences()}
+                        </li>
+                        <li>
+                          <strong>At canvas: </strong>
+                          {startCanvas}
+                        </li>
+                        <li>
+                          <strong>Current canvas: </strong>
+                          {currentCanvas}
+                        </li>
+                        <li>
+                          <strong>Total canvas: </strong>
+                          {sequence.getTotalCanvases()}
+                        </li>
+                        <li>
+                          <strong>Canvas label: </strong>
+                          <LocaleString>{canvas.getLabel()}</LocaleString>
+                        </li>
+                        <li>
+                          <img src={canvas.getCanonicalImageUri(100)} />
+                        </li>
+                      </ul>
+                    </div>
+                  )
+                }
+              </CanvasProvider>
+            </Manifest>
+        ) : null }
         { fiveoLoaded ? (
         <input type="text"
                onFocus={() => this.setState({ isFocused: true })}
@@ -151,6 +201,7 @@ class Collection extends Component {
         </div>
         <MyVirtualList
           items={manifests}
+          onClick={this.handleClick}
           itemHeight={40}
         />
       </div>
