@@ -221,7 +221,7 @@ class Collection extends Component {
                 return b.score - a.score;
               }).map(r => {
                 return (
-                  <li>
+                  <li onClick={ () => this.setState({ selectedManifest: manifests[r.index]['@id'] }) }>
                     <b>{r.text}</b>, <code>{r.score}</code>
                   </li>
                 );

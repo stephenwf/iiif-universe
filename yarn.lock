@@ -2835,9 +2835,9 @@ find-up@^2.0.0, find-up@^2.1.0:
   dependencies:
     locate-path "^2.0.0"
 
-fiveo-web@^0.3.2:
-  version "0.3.2"
-  resolved "https://registry.yarnpkg.com/fiveo-web/-/fiveo-web-0.3.2.tgz#4caa2db0afe83a3f9827960d4d494428f3202373"
+fiveo-web@^0.3.3:
+  version "0.3.3"
+  resolved "https://registry.yarnpkg.com/fiveo-web/-/fiveo-web-0.3.3.tgz#3e94afe0347b0dddd82fc227b45e5c418b37570a"
 
 flatten@^1.0.2:
   version "1.0.2"
