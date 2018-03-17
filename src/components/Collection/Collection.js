@@ -82,8 +82,11 @@ class Collection extends Component {
 
       // if (!this.state.isFocused) {
       console.info('Creating index');
-      this.index = fiveo.createBlockingMatcher(this.state.manifests.map(e => e.label));
-      this.setState({ fiveoLoaded: true });
+      fiveo.createBlockingMatcher(this.state.manifests.map(e => e.label))
+        .then(idx => {
+          this.index = idx;
+          this.setState({fiveoLoaded: true})
+        });
       // }
     }
   };
@@ -143,7 +146,7 @@ class Collection extends Component {
     if (!text) {
       return this.setState({ results: [] });
     }
-    this.index.then(matcher => matcher.search(text, 10)).then(results => {
+    this.index.search(text, 10).then(results => {
       this.setState({ results });
     });
   };
