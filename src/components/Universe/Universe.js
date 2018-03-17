@@ -18,20 +18,23 @@ class Universe extends Component {
     }
     return (
       <div>
-        <ul>
-          {data.collections.map(collection => (
-            <li onClick={() => this.setState({ selected: collection })}>
-              {collection.label}
-            </li>
-          ))}
-        </ul>
         <div>
           { selected ? (
             <div>
-              <h2>Selected:</h2>
+              <button onClick={() => this.setState({ selected: false })}>back to all collections</button>
               <Collection url={selected['@id']} label={selected.label}/>
             </div>
-          ) : null }
+          ) : (
+            <div>
+              <ul>
+                {data.collections.map(collection => (
+                  <li onClick={() => this.setState({ selected: collection })}>
+                    {collection.label}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) }
         </div>
       </div>
     );

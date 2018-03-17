@@ -95,7 +95,12 @@ class Collection extends Component {
       results: [],
       loading: true,
       hasError: false,
+      selectedManifest: null,
+      selectedCollection: null,
+      fiveoLoaded: false,
     });
+    this.index = null;
+    const that = this;
     oboe(url)
       .node('collections.*', collection => {
         if (collection[ '@type' ] === 'sc:Collection') {
