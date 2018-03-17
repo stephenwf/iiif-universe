@@ -124,7 +124,7 @@ class Collection extends Component {
     this.setState({ hasError: true, error, selectedManifest: null });
     setTimeout(() => {
       this.setState({ hasError: false })
-    }, 2000)
+    }, 5000)
   }
 
 
@@ -153,7 +153,7 @@ class Collection extends Component {
     return (
       <div>
         { hasError ? (
-          <div style={{ background: 'red', color: '#fff', padding: 15 }}>Something went wrong viewing that manifest</div>
+          <div style={{ background: 'red', color: '#fff', padding: 15, position: 'fixed', top: 0, left: 0, right: 0, width: '100%' }}>Something went wrong viewing that manifest</div>
         ) : null }
         {selectedCollection ? (
           <div>
