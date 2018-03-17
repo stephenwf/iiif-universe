@@ -2,12 +2,19 @@ import React, { Component } from 'react';
 import oboe from 'oboe';
 import VirtualList from 'react-virtual-list';
 import * as fiveo from 'fiveo-web';
-import { Manifest, CanvasProvider, CanvasNavigation, LocaleString } from '@canvas-panel/core';
+import {
+  Manifest,
+  CanvasProvider,
+  CanvasNavigation,
+  LocaleString,
+  SingleTileSource,
+  OpenSeadragonViewer,
+} from '@canvas-panel/core';
 
 const MyList = ({
                   virtual,
                   itemHeight,
-  onClick
+                  onClick,
                 }) => (
   <ul style={virtual.style}>
     {virtual.items.map(item => (
@@ -32,6 +39,7 @@ class Collection extends Component {
     isFocused: false,
     fiveoLoaded: false,
     selectedManifest: null,
+    selectedCollection: null,
   };
 
   index = null;
@@ -73,9 +81,9 @@ class Collection extends Component {
     if (this.loading === true || this.index === null) {
 
       // if (!this.state.isFocused) {
-        console.info('Creating index');
-        this.index = fiveo.createBlockingMatcher(this.state.manifests.map(e => e.label));
-        this.setState({ fiveoLoaded: true })
+      console.info('Creating index');
+      this.index = fiveo.createBlockingMatcher(this.state.manifests.map(e => e.label));
+      this.setState({ fiveoLoaded: true });
       // }
     }
   };
@@ -86,6 +94,7 @@ class Collection extends Component {
       manifests: [],
       results: [],
       loading: true,
+      hasError: false,
     });
     oboe(url)
       .node('collections.*', collection => {
@@ -110,11 +119,20 @@ class Collection extends Component {
       });
   }
 
-  handleClick = (item) => () => {
-    if (item['@type'] === 'sc:Manifest') {
-      this.setState({ selectedManifest: item['@id'] })
-    }
+  componentDidCatch(error, info) {
+    // Display fallback UI
+    this.setState({ hasError: true, error, selectedManifest: null });
+    setTimeout(() => {
+      this.setState({ hasError: false })
+    }, 2000)
   }
+
+
+  handleClick = (item) => () => {
+    if (item[ '@type' ] === 'sc:Manifest') {
+      this.setState({ selectedManifest: item[ '@id' ] });
+    }
+  };
 
   performSearch = (text) => {
     if (!text) {
@@ -125,85 +143,91 @@ class Collection extends Component {
     });
   };
 
+  handleCollectionClick = (collection) => () => {
+    this.setState({ selectedCollection: collection });
+  };
+
   render() {
-    const { collections, manifests, results, isFocused, selectedManifest, fiveoLoaded, isLoading } = this.state;
+    const { collections, hasError, manifests, results, isFocused, selectedManifest, fiveoLoaded, isLoading, selectedCollection } = this.state;
+
     return (
       <div>
-        {this.props.label}
-        <h3>Collections</h3>
-        <MyVirtualList
-          items={collections}
-          itemHeight={40}
-          onClick={this.handleClick}
-        />
-
-        <h3>Manifests</h3>
-        { selectedManifest ? (
-          <Manifest url={selectedManifest}>
-              <CanvasProvider startCanvas={3}>
-                {
-                  ({ sequence, manifest, canvas, currentCanvas, startCanvas, dispatch }) => (
-                    <div>
-                      <ul>
-                        <li>
-                          <CanvasNavigation dispatch={dispatch} />
-                        </li>
-                        <li>
-                          <strong>Total Sequences: </strong>
-                          {manifest.getTotalSequences()}
-                        </li>
-                        <li>
-                          <strong>At canvas: </strong>
-                          {startCanvas}
-                        </li>
-                        <li>
-                          <strong>Current canvas: </strong>
-                          {currentCanvas}
-                        </li>
-                        <li>
-                          <strong>Total canvas: </strong>
-                          {sequence.getTotalCanvases()}
-                        </li>
-                        <li>
-                          <strong>Canvas label: </strong>
-                          <LocaleString>{canvas.getLabel()}</LocaleString>
-                        </li>
-                        <li>
-                          <img src={canvas.getCanonicalImageUri(100)} />
-                        </li>
-                      </ul>
-                    </div>
-                  )
-                }
-              </CanvasProvider>
-            </Manifest>
+        { hasError ? (
+          <div style={{ background: 'red', color: '#fff', padding: 15 }}>Something went wrong viewing that manifest</div>
         ) : null }
-        { fiveoLoaded ? (
-        <input type="text"
-               onFocus={() => this.setState({ isFocused: true })}
-               onBlur={() => this.setState({ isFocused: false })}
-               onKeyUp={e => this.performSearch(e.currentTarget.value)}/>
-        ) : null }
-        {
-          isFocused && isLoading ? 'Warning we are still fetching manifests, search may be incomplete.' : null
-        }
-        <ul style={{ border: '1px solid gray' }}>
-          {this.state.results.sort((a, b) => {
-            return b.score - a.score;
-          }).map(r => {
-            return(
-            <li>
-              <b>{r.text}</b>, <code>{r.score}</code>
-            </li>
-          )})}
-        </ul>
-        <div>
-        </div>
-        <MyVirtualList
-          items={manifests}
-          onClick={this.handleClick}
-          itemHeight={40}
-        />
+        {selectedCollection ? (
+          <div>
+            <button onClick={() => this.setState({ selectedCollection: null })}>back</button>
+            <h2>Collection: { selectedCollection.label }</h2>
+            <Collection url={selectedCollection['@id']}/>
+          </div>
+        ) : (
+          <div>
+            {this.props.label}
+            <h3>Collections</h3>
+            <MyVirtualList
+              items={collections}
+              itemHeight={40}
+              onClick={this.handleCollectionClick}
+            />
+            <h3>Manifests</h3>
+            {selectedManifest ? (
+              <div style={{ position: 'fixed', top: 0, bottom: 0, left: 0, right: 0, width: '100%', height: '100%' }}>
+                <div style={{ maxWidth: 1000, margin: 'auto', zIndex: 2, position: 'relative', background: '#fff' }}>
+                  <Manifest url={selectedManifest}>
+                    <CanvasProvider startCanvas={3}>
+                      <CanvasNavigation/>
+                      <SingleTileSource>
+                        <OpenSeadragonViewer maxHeight={1000}/>
+                      </SingleTileSource>
+                    </CanvasProvider>
+                    <button onClick={() => this.setState({ selectedManifest: null })}>Close</button>
+                  </Manifest>
+                </div>
+                <div
+                  onClick={() => this.setState({ selectedManifest: null })}
+                  style={{
+                    position: 'absolute',
+                    top: 0,
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    width: '100%',
+                    height: '100%',
+                    background: 'rgba(0,0,0,.3)',
+                    zIndex: 1,
+                  }}/>
+              </div>
+            ) : null}
+            {fiveoLoaded ? (
+              <input type="text"
+                     onFocus={() => this.setState({ isFocused: true })}
+                     onBlur={() => this.setState({ isFocused: false })}
+                     onKeyUp={e => this.performSearch(e.currentTarget.value)}/>
+            ) : null}
+            {
+              isFocused && isLoading ? 'Warning we are still fetching manifests, search may be incomplete.' : null
+            }
+            <ul style={{ border: '1px solid gray' }}>
+              {this.state.results.sort((a, b) => {
+                return b.score - a.score;
+              }).map(r => {
+                return (
+                  <li>
+                    <b>{r.text}</b>, <code>{r.score}</code>
+                  </li>
+                );
+              })}
+            </ul>
+            <div>
+            </div>
+            <MyVirtualList
+              items={manifests}
+              onClick={this.handleClick}
+              itemHeight={40}
+            />
+          </div>
+        )}
       </div>
     );
   }
