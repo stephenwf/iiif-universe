@@ -2,6 +2,8 @@ import React, { Component } from 'react';
 import oboe from 'oboe';
 import VirtualList from 'react-virtual-list';
 import * as fiveo from 'fiveo-web';
+import CanvasPanelWrapper from '../CanvasPanelWrapper/CanvasPanelWrapper';
+import UniversalViewerWrapper from '../UniversalViewerWrapper/UniversalViewerWrapper';
 import {
   Manifest,
   CanvasProvider,
@@ -167,7 +169,7 @@ class Collection extends Component {
           <div>
             <button onClick={() => this.setState({ selectedCollection: null })}>back</button>
             <h2>Collection: { selectedCollection.label }</h2>
-            <Collection url={selectedCollection['@id']}/>
+            <Collection url={selectedCollection['@id']} viewer={this.props.viewer}/>
           </div>
         ) : (
           <div>
@@ -182,15 +184,19 @@ class Collection extends Component {
             {selectedManifest ? (
               <div style={{ position: 'fixed', top: 0, bottom: 0, left: 0, right: 0, width: '100%', height: '100%' }}>
                 <div style={{ maxWidth: 1000, margin: 'auto', zIndex: 2, position: 'relative', background: '#fff' }}>
-                  <Manifest url={selectedManifest}>
-                    <CanvasProvider startCanvas={3}>
-                      <CanvasNavigation/>
-                      <SingleTileSource>
-                        <OpenSeadragonViewer maxHeight={1000}/>
-                      </SingleTileSource>
-                    </CanvasProvider>
-                    <button onClick={() => this.setState({ selectedManifest: null })}>Close</button>
-                  </Manifest>
+                  {
+                    this.props.viewer === 'universal-viewer' ? (
+                      <UniversalViewerWrapper
+                        manifest={selectedManifest}
+                        onClose={() => this.setState({ selectedManifest: null })}
+                      />
+                    ): (
+                      <CanvasPanelWrapper
+                        manifest={selectedManifest}
+                        onClose={() => this.setState({ selectedManifest: null })}
+                      />
+                    )
+                  }
                 </div>
                 <div
                   onClick={() => this.setState({ selectedManifest: null })}

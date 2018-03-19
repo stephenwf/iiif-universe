@@ -3,13 +3,19 @@ import Collection from '../Collection/Collection';
 
 class Universe extends Component {
 
-  state = { isLoaded: false, data: null, selected: null };
+  state = { isLoaded: false, data: null, selected: null, viewer: 'universal-viewer' };
 
   componentWillMount() {
     fetch('https://raw.githubusercontent.com/ryanfb/iiif-universe/gh-pages/iiif-universe.json')
       .then(r => r.json())
       .then(data => this.setState(() => ({ isLoaded: true, data })));
   }
+
+  handleCheckbox = () => {
+    this.setState({
+      viewer: this.state.viewer === 'universal-viewer' ? 'canvas-panel' : 'universal-viewer',
+    });
+  };
 
   render() {
     const { isLoaded, data, selected } = this.state;
@@ -22,7 +28,7 @@ class Universe extends Component {
           { selected ? (
             <div>
               <button onClick={() => this.setState({ selected: false })}>back to all collections</button>
-              <Collection url={selected['@id']} label={selected.label}/>
+              <Collection url={selected['@id']} label={selected.label} viewer={this.state.viewer}/>
             </div>
           ) : (
             <div>
@@ -36,6 +42,10 @@ class Universe extends Component {
             </div>
           ) }
         </div>
+        <label>
+          <input type="checkbox" defaultChecked={this.state.viewer === 'canvas-panel'} onChange={this.handleCheckbox} />
+          Try canvas panel
+        </label>
       </div>
     );
   }
