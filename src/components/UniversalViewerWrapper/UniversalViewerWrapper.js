@@ -1,8 +1,7 @@
 import React, {Component} from 'react';
 
 class UniversalViewerWrapper extends Component {
-
-  static baseUrl = 'http://universalviewer.io/examples/uv/uv.html';
+  static baseUrl = 'https://universalviewer.io/examples/uv/uv.html';
 
   getCurrentUrl() {
     const parts = [];
@@ -12,7 +11,7 @@ class UniversalViewerWrapper extends Component {
       parts.push('manifest=');
       parts.push(this.props.manifest);
     }
-    parts.push('&c=0&m=0&s=0&cv=0&config=examples-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg');
+    parts.push('&c=0&m=0&s=0&cv=0&config=examples-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg&r=0');
     return parts.join('');
   }
 
